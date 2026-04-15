@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>토익 스피킹 타이머</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; display: flex; justify-content: center; padding: 2rem 1rem; }
+.wrap { width: 100%; max-width: 480px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1.5rem; }
+.preset-btn { padding: 6px 14px; font-size: 13px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+.preset-btn:hover { background: #f5f5f5; }
+.preset-btn.active { background: #e8f0fe; color: #1a56db; border-color: #a4c0f4; }
+.custom-row { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+.custom-row label { font-size: 13px; color: #666; white-space: nowrap; }
+.custom-row input { width: 72px; padding: 6px 10px; font-size: 14px; border-radius: 8px; border: 1px solid #ddd; }
+.custom-row button { padding: 6px 14px; font-size: 13px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+.clock-wrap { background: #f8f9fa; border-radius: 12px; border: 1px solid #eee; padding: 2rem; text-align: center; margin-bottom: 1.5rem; }
+.clock-label { font-size: 12px; color: #888; margin-bottom: 8px; letter-spacing: 0.05em; }
+.clock-time { font-size: 64px; font-weight: 500; color: #111; line-height: 1; font-variant-numeric: tabular-nums; }
+.clock-time.danger { color: #e53935; }
+.progress-bar-bg { height: 4px; background: #e0e0e0; border-radius: 2px; margin-top: 1.5rem; }
+.progress-bar { height: 4px; border-radius: 2px; background: #1a56db; transition: width 0.5s linear; }
+.controls { display: flex; gap: 10px; justify-content: center; }
+.ctrl-btn { padding: 10px 28px; font-size: 14px; border-radius: 8px; border: 1px solid #ddd; background: #fff; cursor: pointer; }
+.ctrl-btn.primary { background: #1a56db; color: #fff; border-color: #1a56db; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="font-size:13px;color:#888;margin-bottom:10px;">빠른 선택</div>
+  <div class="presets" id="presets">
+    <button class="preset-btn" data-sec="15">15초</button>
+    <button class="preset-btn" data-sec="30">30초</button>
+    <button class="preset-btn active" data-sec="45">45초</button>
+    <button class="preset-btn" data-sec="60">60초</button>
+    <button class="preset-btn" data-sec="90">90초</button>
+    <button class="preset-btn" data-sec="120">2분</button>
+  </div>
+  <div class="custom-row">
+    <label>직접 입력</label>
+    <input type="number" id="customInput" min="1" max="600" placeholder="초" />
+    <button onclick="applyCustom()">적용</button>
+  </div>
+  <div class="clock-wrap">
+    <div class="clock-label" id="clockLabel">45초</div>
+    <div class="clock-time" id="clockTime">0:45</div>
+    <div class="progress-bar-bg"><div class="progress-bar" id="progressBar" style="width:100%"></div></div>
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn primary" id="startBtn" onclick="toggleTimer()">시작</button>
+    <button class="ctrl-btn" onclick="resetTimer()">리셋</button>
+  </div>
+</div>
+<script>
+let totalSec=45,remaining=45,interval=null,running=false;
+function fmt(s){const m=Math.floor(s/60),sec=s%60;return m+':'+String(sec).padStart(2,'0');}
+function setTime(sec){clearInterval(interval);interval=null;running=false;totalSec=sec;remaining=sec;document.getElementById('startBtn').textContent='시작';document.getElementById('clockLabel').textContent=sec>=60?Math.floor(sec/60)+'분':sec+'초';render();}
+function render(){const el=document.getElementById('clockTime');el.textContent=fmt(remaining);el.className='clock-time'+(remaining<=10&&remaining>0?' danger':'');const pct=totalSec>0?(remaining/totalSec)*100:0;const bar=document.getElementById('progressBar');bar.style.width=pct+'%';bar.style.background=remaining<=10?'#e53935':'#1a56db';}
+function toggleTimer(){if(running){clearInterval(interval);running=false;document.getElementById('startBtn').textContent='계속';}else{if(remaining===0)remaining=totalSec;running=true;document.getElementById('startBtn').textContent='일시정지';interval=setInterval(()=>{remaining--;render();if(remaining<=0){clearInterval(interval);running=false;document.getElementById('startBtn').textContent='시작';document.getElementById('clockTime').textContent='완료!';document.getElementById('clockTime').className='clock-time';}},1000);}}
+function resetTimer(){clearInterval(interval);running=false;remaining=totalSec;document.getElementById('startBtn').textContent='시작';render();}
+document.querySelectorAll('.preset-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');setTime(parseInt(btn.dataset.sec));});});
+function applyCustom(){const v=parseInt(document.getElementById('customInput').value);if(!v||v<1)return;document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));setTime(v);}
+render();
+</script>
+</body>
+</html>
